@@ -1,9 +1,11 @@
 package com.tp.jpa.util;
 
 import com.tp.jpa.model.entities.Categoria;
+import com.tp.jpa.model.entities.Pedido;
 import com.tp.jpa.model.entities.Producto;
 import com.tp.jpa.model.entities.Usuario;
 import com.tp.jpa.repository.CategoriaRepository;
+import com.tp.jpa.repository.PedidoRepository;
 import com.tp.jpa.repository.ProductoRepository;
 import com.tp.jpa.repository.UsuarioRepository;
 
@@ -89,5 +91,28 @@ public class Reports {
         }
         return true;
     }
+
+    public static boolean mostrarPedidosActivos(PedidoRepository pedidoRepo) {
+        var pedidos = pedidoRepo.listarActivos();
+
+        if (pedidos.isEmpty()) {
+            System.out.println("No hay pedidos activos.");
+            return false;
+        }
+
+        System.out.println("\n--- PEDIDOS ACTIVOS ---");
+        for (Pedido p : pedidos) {
+            System.out.println("ID: " + p.getId() +
+                    " | Fecha: " + p.getFecha() +
+                    " | Estado: " + p.getEstado() +
+                    " | Forma de pago: " + p.getFormapago() +
+                    " | Usuario: " + p.getUsuario().getNombre() + " " + p.getUsuario().getApellido() +
+                    " | Total: $" + p.getTotal());
+        }
+        return true;
+    }
+
+
+
 
 }

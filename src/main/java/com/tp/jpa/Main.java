@@ -1,15 +1,22 @@
 package com.tp.jpa;
 
+import com.tp.jpa.model.dtos.DetalleTemporal;
 import com.tp.jpa.model.entities.Categoria;
+import com.tp.jpa.model.entities.Pedido;
 import com.tp.jpa.model.entities.Producto;
 import com.tp.jpa.model.entities.Usuario;
+import com.tp.jpa.model.enums.Estado;
+import com.tp.jpa.model.enums.FormaPago;
 import com.tp.jpa.model.enums.Rol;
 import com.tp.jpa.repository.CategoriaRepository;
+import com.tp.jpa.repository.PedidoRepository;
 import com.tp.jpa.repository.ProductoRepository;
 import com.tp.jpa.repository.UsuarioRepository;
 import com.tp.jpa.util.DataLoader;
 import com.tp.jpa.util.Validator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -32,6 +39,7 @@ public class Main {
         CategoriaRepository categoriaRepo = new CategoriaRepository();
         ProductoRepository productoRepo = new ProductoRepository();
         UsuarioRepository usuarioRepo = new UsuarioRepository();
+        PedidoRepository pedidoRepo = new PedidoRepository();
 
 
         //Clase solo para pruebas - carga categorias y productos si la base se encuentra vacia.
@@ -45,7 +53,8 @@ public class Main {
             System.out.println("1. Gestión de Categorías");
             System.out.println("2. Gestión de Productos");
             System.out.println("3. Gestión de Usuarios");
-            System.out.println("4. Reportes");
+            System.out.println("4. Gestionar Pedidos");
+            System.out.println("5. Reportes");
             System.out.println("0. Salir");
             System.out.println("..........................\n");
 
@@ -59,35 +68,9 @@ public class Main {
 
                 case 3 -> menuUsuarios(sc, usuarioRepo);
 
-                case 4 -> menuReportes(sc, productoRepo, categoriaRepo);
+                case 4 -> menuPedidos(sc, pedidoRepo, usuarioRepo, productoRepo);
 
-
-                    /*System.out.println("\n--- REPORTES ---");
-                    System.out.println("Elija una opcion: ");
-
-                    System.out.println("1. Listar  Productos por categoria");
-                    System.out.println("0. Volver al menu principal");
-
-                    int opcionReporte = intSeguro(sc, "Ingrese un numero: \n");
-
-                    switch (opcionReporte) {
-                        case 1 -> {
-
-                            if (!mostrarCategoriasActivas(categoriaRepo)) {
-                                System.out.println("Operación cancelada.");
-                                break;
-                            }
-
-                            Long idReporte = LongSeguro(sc, "\nSeleccione ID de categoría: ");
-
-                            listarProductoPorCategoriaHelper(productoRepo, idReporte);
-
-
-                        }
-                        case 0 -> System.out.println("Volviendo al menú principal...");
-
-                    }*/
-
+                case 5 -> menuReportes(sc, productoRepo, categoriaRepo);
 
                 case 0 -> System.out.println("Saliendo del sistema...");
 
@@ -652,6 +635,203 @@ public class Main {
             }
         } while (opcion != 0);
     }
+
+    private static void menuPedidos(Scanner sc, PedidoRepository pedidoRepo, UsuarioRepository usuarioRepo, ProductoRepository productoRepo) {
+        int opcion;
+        do {
+            System.out.println("\n\n===== MENÚ DE PEDIDOS =====");
+            System.out.println("1. Alta de pedido");
+            System.out.println("2. Cambiar estado");
+            System.out.println("3. Baja lógica");
+            System.out.println("4. Listado");
+            System.out.println("5. Pedidos por usuario");
+            System.out.println("6. Pedidos por estado");
+            System.out.println("0. Volver");
+
+            opcion = intSeguro(sc, "Seleccione una opción: ");
+
+            switch (opcion) {
+                case 1 -> { //alta de pedido
+                    // Selección de usuario
+                    mostrarUsuariosActivos(usuarioRepo);
+                    Long idUsuario = LongSeguro(sc, "Seleccione ID de usuario: ");
+                    Optional<Usuario> usuarioOpt = usuarioRepo.buscarPorId(idUsuario);
+                    if (usuarioOpt.isEmpty()) {
+                        System.out.println("Usuario no encontrado.");
+                        return;
+                    }
+
+                    // Forma de pago
+                    System.out.println("Formas de pago: 1.TARJETA  2.TRANSFERENCIA  3.EFECTIVO");
+                    int opcionPago = intSeguro(sc, "Seleccione forma de pago: ");
+                    FormaPago formaPago;
+                    switch (opcionPago) {
+                        case 1 -> formaPago = FormaPago.TARJETA;
+                        case 2 -> formaPago = FormaPago.TRANSFERENCIA;
+                        case 3 -> formaPago = FormaPago.EFECTIVO;
+                        default -> {
+                            System.out.println("Opción inválida.");
+                            return;
+                        }
+                    }
+                    ;
+
+                    // Productos
+                    List<DetalleTemporal> detallesTemp = new ArrayList<>();
+                    boolean agregarMas = true;
+                    while (agregarMas) {
+                        if (mostrarProductosActivos(productoRepo)) {
+                            Long idProd = LongSeguro(sc, "ID producto: ");
+                            Optional<Producto> prodOpt = productoRepo.buscarPorId(idProd);
+
+                            if (prodOpt.isEmpty() || !prodOpt.get().isDisponible()) {
+                                System.out.println("Producto inválido o no disponible.");
+                                return;
+                            }
+
+                            int cantidad = intSeguro(sc, "Cantidad: ");
+                            //  inválida (0 o negativa)
+                            if (cantidad <= 0) {
+                                System.out.println("La cantidad debe ser mayor a 0.");
+                                continue;
+                            }
+
+                            //cantidad mayor al stock disponible
+                            if (cantidad > prodOpt.get().getStock()) {
+                                System.out.println("Stock insuficiente. Disponible: " + prodOpt.get().getStock());
+                                continue;
+                            }
+
+                            //se guarda de manera temporal los detalles para usarlos
+                            detallesTemp.add(new DetalleTemporal(idProd, cantidad));
+
+                            boolean opcionValida = false; //continua hasta que el usuario ingresa 1 o 2
+                            while (!opcionValida) {
+                                System.out.println("¿Agregar otro producto? (1.Sí / 2.No)");
+                                int opcionAgregar = intSeguro(sc, "Seleccione: ");
+                                switch (opcionAgregar) {
+                                    case 1 -> {
+                                        agregarMas = true;
+                                        opcionValida = true;
+                                    }
+                                    case 2 -> {
+                                        agregarMas = false;
+                                        opcionValida = true;
+                                    }
+                                    default -> System.out.println("Opción inválida. Ingrese 1 o 2.");
+                                }
+                            }
+
+                            if (detallesTemp.isEmpty()) {
+                                System.out.println("El pedido debe tener al menos un producto.");
+                                return;
+                            }
+
+                            // Llamada al repositorio
+                            try {
+                                Pedido pedido = pedidoRepo.altaPedido(usuarioOpt.get(), formaPago, detallesTemp);
+                                System.out.println("Pedido creado con ID: " + pedido.getId() + " | Total: $" + pedido.getTotal());
+                            } catch (Exception e) {
+                                System.out.println("Error al crear pedido. Se hizo rollback.");
+                            }
+                        } else {
+                            System.out.println("No hay productos activos para seleccionar.");
+                            return;
+                        }
+                    }
+                }
+                case 2 -> {// cambiar estado de pedido
+                    // Selección de pedido
+                    mostrarPedidosActivos(pedidoRepo);
+                    Long idPedido = LongSeguro(sc, "Seleccione ID de pedido: ");
+                    Optional<Pedido> pedidoOpt = pedidoRepo.buscarPorId(idPedido);
+
+                    if (pedidoOpt.isEmpty() || pedidoOpt.get().isEliminado()) {
+                        System.out.println("Pedido no encontrado o dado de baja.");
+                        return;
+                    }
+
+                    Pedido pedido = pedidoOpt.get();
+                    System.out.println("Estado actual: " + pedido.getEstado());
+
+                    // Opciones de estado
+                    System.out.println("Nuevos estados disponibles:");
+                    System.out.println("1. PENDIENTE");
+                    System.out.println("2. CONFIRMADO");
+                    System.out.println("3. TERMINADO");
+                    System.out.println("4. CANCELADO");
+
+                    int opcionEstado = intSeguro(sc, "Seleccione nuevo estado: ");
+                    Estado nuevoEstado;
+                    switch (opcionEstado) {
+                        case 1 -> nuevoEstado = Estado.PENDIENTE;
+                        case 2 -> nuevoEstado = Estado.CONFIRMADO;
+                        case 3 -> nuevoEstado = Estado.TERMINADO;
+                        case 4 -> nuevoEstado = Estado.CANCELADO;
+                        default -> {
+                            System.out.println("Opción inválida.");
+                            return;
+                        }
+                    }
+
+                    // Actualizar y guardar
+                    pedido.setEstado(nuevoEstado);
+                    pedidoRepo.guardar(pedido);
+
+                    System.out.println("Pedido ID " + pedido.getId() +
+                            " actualizado a estado: " + pedido.getEstado());
+
+                }
+
+                case 3 -> { //Pedidos por estado
+                    System.out.println("Seleccione estado de pedido:");
+                    System.out.println("1. PENDIENTE");
+                    System.out.println("2. CONFIRMADO");
+                    System.out.println("3. TERMINADO");
+                    System.out.println("4. CANCELADO");
+
+                    int opcionEstado = intSeguro(sc, "Seleccione opción: ");
+                    Estado estadoBuscado;
+
+                    switch (opcionEstado) {
+                        case 1 -> estadoBuscado = Estado.PENDIENTE;
+                        case 2 -> estadoBuscado = Estado.CONFIRMADO;
+                        case 3 -> estadoBuscado = Estado.TERMINADO;
+                        case 4 -> estadoBuscado = Estado.CANCELADO;
+                        default ->{
+                            System.out.println("Opción inválida.");
+                            return;
+                        }
+
+                    }
+
+                    var pedidos = pedidoRepo.buscarPorEstado(estadoBuscado);
+
+
+                }
+                case 4 -> { //mostrar pedidos
+                    if (mostrarPedidosActivos(pedidoRepo)) {
+                        System.out.println("........................");
+                    } else {
+                        System.out.println("No se encontraron pedidos activos.");
+                    }
+                }
+                //             case 5 -> pedidosPorUsuario(usuarioRepo, pedidoRepo, sc);
+                //            case 6 -> pedidosPorEstado(pedidoRepo, sc);
+                case 0 -> System.out.println("Volviendo al menú principal...");
+                default -> System.out.println("Opción inválida.");
+            }
+        } while (opcion != 0);
+
+    }
+
+
+    //carga de datos para altaPedido
+/*    private static void altaPedido(UsuarioRepository usuarioRepo,
+                                   ProductoRepository productoRepo,
+                                   PedidoRepository pedidoRepo,
+                                   Scanner sc) {
+        */
 
 
     private static void menuReportes(Scanner sc, ProductoRepository productoRepo, CategoriaRepository categoriaRepo) {
