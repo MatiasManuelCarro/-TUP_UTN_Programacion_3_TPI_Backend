@@ -11,6 +11,7 @@ import com.tp.jpa.repository.ProductoRepository;
 import com.tp.jpa.repository.UsuarioRepository;
 
 import java.util.List;
+import java.util.Locale;
 
 public class Reports {
     public static void listarProductoPorCategoriaHelper(ProductoRepository productoRepo, long idReporte){
@@ -148,6 +149,18 @@ public class Reports {
         }
         return true;
     }
+
+    public static void mostrarTotalFacturado(PedidoRepository pedidoRepo) {
+        var pedidosTerminados = pedidoRepo.buscarPorEstado(Estado.TERMINADO);
+
+        double totalFacturado = pedidosTerminados.stream()
+                .mapToDouble(p -> p.getTotal() != null ? p.getTotal() : 0.0)
+                .sum();
+
+        System.out.println("Total facturado: " +
+                String.format(Locale.US, "$%.2f", totalFacturado));
+    }
+
 
 
 }

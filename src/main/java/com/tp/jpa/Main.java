@@ -15,10 +15,7 @@ import com.tp.jpa.repository.UsuarioRepository;
 import com.tp.jpa.util.DataLoader;
 import com.tp.jpa.util.Validator;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
 import java.util.logging.Level;
 
 import static com.tp.jpa.util.Reports.*;
@@ -70,7 +67,7 @@ public class Main {
 
                 case 4 -> menuPedidos(sc, pedidoRepo, usuarioRepo, productoRepo);
 
-                case 5 -> menuReportes(sc, productoRepo, categoriaRepo);
+                case 5 -> menuReportes(sc, productoRepo, categoriaRepo, usuarioRepo, pedidoRepo );
 
                 case 0 -> System.out.println("Saliendo del sistema...");
 
@@ -870,20 +867,15 @@ public class Main {
 
     }
 
-
-    //carga de datos para altaPedido
-/*    private static void altaPedido(UsuarioRepository usuarioRepo,
-                                   ProductoRepository productoRepo,
-                                   PedidoRepository pedidoRepo,
-                                   Scanner sc) {
-        */
-
-
-    private static void menuReportes(Scanner sc, ProductoRepository productoRepo, CategoriaRepository categoriaRepo) {
+    private static void menuReportes(Scanner sc, ProductoRepository productoRepo, CategoriaRepository categoriaRepo, UsuarioRepository usuarioRepo,
+                                     PedidoRepository pedidoRepo) {
         int opcionReporte;
         do {
             System.out.println("\n--- REPORTES ---");
             System.out.println("1. Listar Productos por categoría");
+            System.out.println("2. Pedidos por usuario");
+            System.out.println("3. Pedidos por estado");
+            System.out.println("4. Total facturado");
             System.out.println("0. Volver al menú principal");
 
             opcionReporte = intSeguro(sc, "Ingrese un número: ");
@@ -894,9 +886,55 @@ public class Main {
                         System.out.println("Operación cancelada.");
                         break;
                     }
-                    Long idReporte = LongSeguro(sc, "\nSeleccione ID de categoría: ");
-                    listarProductoPorCategoriaHelper(productoRepo, idReporte);
+                    Long idCategoria = LongSeguro(sc, "\nSeleccione ID de categoría: ");
+                    listarProductoPorCategoriaHelper(productoRepo, idCategoria);
                 }
+
+                case 2 -> {
+                    if (mostrarUsuariosActivos(usuarioRepo)) {
+                        Long idUsuario = LongSeguro(sc, "Seleccione ID de usuario: ");
+                        if (mostrarPedidosPorUsuario(pedidoRepo, idUsuario)) {
+                            System.out.println("Fin del listado.");
+                        } else {
+                            System.out.println("No se encontraron pedidos para el usuario seleccionado.");
+                        }
+                    } else {
+                        System.out.println("No hay usuarios activos para seleccionar.");
+                    }
+                }
+
+                case 3 -> {
+                    System.out.println("Seleccione estado de pedido:");
+                    System.out.println("1. PENDIENTE");
+                    System.out.println("2. CONFIRMADO");
+                    System.out.println("3. TERMINADO");
+                    System.out.println("4. CANCELADO");
+
+                    int opcionEstado = intSeguro(sc, "Seleccione opción: ");
+                    Estado estadoBuscado = null;
+
+                    switch (opcionEstado) {
+                        case 1 -> estadoBuscado = Estado.PENDIENTE;
+                        case 2 -> estadoBuscado = Estado.CONFIRMADO;
+                        case 3 -> estadoBuscado = Estado.TERMINADO;
+                        case 4 -> estadoBuscado = Estado.CANCELADO;
+                        default -> {
+                            System.out.println("Opción inválida.");
+                            continue;
+                        }
+                    }
+
+                    if (mostrarPedidosPorEstado(pedidoRepo, estadoBuscado)) {
+                        System.out.println("Fin del listado.");
+                    } else {
+                        System.out.println("No se encontraron pedidos en estado " + estadoBuscado + ".");
+                    }
+                }
+
+                case 4 -> {
+                    mostrarTotalFacturado(pedidoRepo);
+                }
+
                 case 0 -> System.out.println("Volviendo al menú principal...");
                 default -> System.out.println("Opción inválida.");
             }
