@@ -2,11 +2,14 @@ package com.tp.jpa.util;
 
 import com.tp.jpa.model.entities.Categoria;
 import com.tp.jpa.model.entities.Producto;
+import com.tp.jpa.model.entities.Usuario;
 import com.tp.jpa.repository.CategoriaRepository;
 import com.tp.jpa.repository.ProductoRepository;
+import com.tp.jpa.repository.UsuarioRepository;
 
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 import static com.tp.jpa.util.Input.intSeguro;
 
@@ -96,4 +99,86 @@ public class Validator {
         }
         return false; //si pasa las evaluaciones continua con el alta
     }
+
+    //Validar ingreso de mail
+    private static final String REGEX_EMAIL = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+
+  /*  public static boolean validarMail(String mail) {
+        // Si es null o está en blanco es inválido
+        if (mail == null || mail.isBlank()) {
+            return false;
+        }
+        // Si no cumple el regex es inválido
+        return Pattern.matches(REGEX_EMAIL, mail);
+    }*/
+
+    //devuelve true si esta disponible | false si no esta disponible el mail (ya en uso)
+    public static boolean validarMailDisponible(String mail, UsuarioRepository usuarioRepo, Scanner sc) {
+        // null o vacío
+        if (mail == null || mail.isBlank()) {
+            System.out.println("El mail no puede estar vacío.");
+            return false;
+        }
+
+        // Caso 1: ya existe activo
+        boolean existeActivo = usuarioRepo.listarActivos()
+                .stream()
+                .anyMatch(u -> u.getMail().equalsIgnoreCase(mail));
+
+        if (existeActivo) {
+            System.out.println("Ya existe un usuario activo con ese mail.");
+            return false;
+        }
+
+        // Caso 2: existe inactivo → ofrecer reactivación
+        Optional<Usuario> usuarioInactivo = usuarioRepo.listarInactivos()
+                .stream()
+                .filter(u -> u.getMail().equalsIgnoreCase(mail))
+                .findFirst();
+
+        if (usuarioInactivo.isPresent()) {
+            System.out.println("Ya existe un usuario con ese mail, pero se encuentra inactivo." +
+                    "\n¿Desea activarlo nuevamente?");
+            System.out.println("1. Sí");
+            System.out.println("2. No");
+            int opcionAlta = intSeguro(sc, "Seleccione una opción: ");
+
+            switch (opcionAlta) {
+                case 1 -> {
+                    Usuario u = usuarioInactivo.get();
+                    usuarioRepo.AltaLogica(u.getId());
+                    System.out.println("Usuario reactivado correctamente. ID: " + u.getId());
+                    return false;
+                }
+                case 2 -> {
+                    System.out.println("Operación cancelada.");
+                    return false;
+                }
+                default -> {
+                    System.out.println("Opción inválida. Se cancela la operación.");
+                    return false; // corta el flujo
+                }
+            }
+        }
+
+        // Si pasa todas las evaluaciones se puede dar de alta
+        return true;
+    }
+
+    public static boolean validarFormatoMail(String mail) {
+        if (mail == null || mail.isBlank()) return false;
+        String REGEX_EMAIL = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        return mail.matches(REGEX_EMAIL);
+    }
+
+
+    //validar celulares
+    public static boolean validarCelular(String celular) {
+        if (celular == null || celular.isBlank()) {
+            return true; // como es opcional se permite vacio
+        }
+        return celular.matches("^\\+?[0-9]+$"); // permite numeros y el + (por ejemplo +549)
+    }
+
+
 }

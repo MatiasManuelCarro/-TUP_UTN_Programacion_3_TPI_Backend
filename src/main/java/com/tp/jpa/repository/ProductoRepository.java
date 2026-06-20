@@ -1,9 +1,11 @@
 package com.tp.jpa.repository;
 
 import com.tp.jpa.model.entities.Producto;
+import com.tp.jpa.model.entities.Usuario;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ProductoRepository extends BaseRepository<Producto> {
 
@@ -31,17 +33,23 @@ public class ProductoRepository extends BaseRepository<Producto> {
         }
     }
 
+
     public List<Producto> buscarPorNombre(String nombre) {
-        EntityManager em = emf.createEntityManager();
+        var em = emf.createEntityManager();
         try {
-            return em.createQuery(
-                            "SELECT p FROM Producto p WHERE p.nombre = LOWER(:nombre)",
-                            Producto.class
-                    ).setParameter("nombre", nombre)
+            String jpql = "SELECT p FROM Producto p " +
+                    "WHERE LOWER(p.nombre) = LOWER(:nombre) " +
+                    "AND p.eliminado = false";
+            return em.createQuery(jpql, Producto.class)
+                    .setParameter("nombre", nombre)
                     .getResultList();
         } finally {
             em.close();
         }
     }
 
+
 }
+
+
+

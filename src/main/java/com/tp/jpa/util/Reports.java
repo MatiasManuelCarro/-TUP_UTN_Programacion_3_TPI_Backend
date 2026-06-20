@@ -2,8 +2,10 @@ package com.tp.jpa.util;
 
 import com.tp.jpa.model.entities.Categoria;
 import com.tp.jpa.model.entities.Producto;
+import com.tp.jpa.model.entities.Usuario;
 import com.tp.jpa.repository.CategoriaRepository;
 import com.tp.jpa.repository.ProductoRepository;
+import com.tp.jpa.repository.UsuarioRepository;
 
 import java.util.List;
 
@@ -68,6 +70,24 @@ public class Reports {
                     )
             );
             return true;}
+    }
+
+    public static boolean mostrarUsuariosActivos(UsuarioRepository usuarioRepo) {
+        var usuarios = usuarioRepo.listarActivos();
+
+        if (usuarios.isEmpty()) {
+            System.out.println("No hay usuarios activos.");
+            return false;
+        }
+
+        System.out.println("\n--- USUARIOS ACTIVOS ---");
+        for (Usuario u : usuarios) {
+            System.out.println("ID: " + u.getId() +
+                    " | Nombre: " + u.getNombre() + " " + u.getApellido() +
+                    " | Mail: " + u.getMail() +
+                    " | Rol: " + u.getRol());
+        }
+        return true;
     }
 
 }

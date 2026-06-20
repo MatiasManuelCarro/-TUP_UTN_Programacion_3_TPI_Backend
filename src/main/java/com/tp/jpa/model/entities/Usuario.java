@@ -22,7 +22,6 @@ public class Usuario extends Base {
     private String apellido;
     @Column(unique = true)
     private String mail;
-    @Column(unique = true)
     private String celular;
     private String contrasenia;
     @Enumerated(EnumType.STRING)
