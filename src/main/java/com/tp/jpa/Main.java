@@ -783,7 +783,59 @@ public class Main {
 
                 }
 
-                case 3 -> { //Pedidos por estado
+                case 3 -> { //baja logica
+                    // Mostrar pedidos activos
+                    if (!mostrarPedidosActivos(pedidoRepo)) {
+                        System.out.println("No hay pedidos activos para dar de baja.");
+                        return;
+                    }
+
+                    Long idPedido = LongSeguro(sc, "Seleccione ID de pedido: ");
+                    Optional<Pedido> pedidoOpt = pedidoRepo.buscarPorId(idPedido);
+
+                    // Validar existencia y que no esté eliminado
+                    if (pedidoOpt.isEmpty() || pedidoOpt.get().isEliminado()) {
+                        System.out.println("Pedido no encontrado o ya estaba dado de baja.");
+                        return;
+                    }
+
+                    Pedido pedido = pedidoOpt.get();
+
+                    // Ejecutar baja lógica
+                    boolean eliminado = pedidoRepo.eliminarLogico(idPedido);
+
+                    if (!eliminado) {
+                        System.out.println("Error al dar de baja el pedido.");
+                        return;
+                    }
+
+                    // Confirmar con datos guardados antes de la baja
+                    System.out.println("Pedido ID " + pedido.getId() +
+                            " dado de baja correctamente. Total: $" + pedido.getTotal());
+
+                }
+                case 4 -> { //mostrar pedidos
+                    if (mostrarPedidosActivos(pedidoRepo)) {
+                        System.out.println("........................");
+                    } else {
+                        System.out.println("No se encontraron pedidos activos.");
+                    }
+                }
+                case 5 -> {// pedidos por usuario
+                    if (mostrarUsuariosActivos(usuarioRepo)) {
+                        Long idUsuario = LongSeguro(sc, "Seleccione ID de usuario: ");
+
+                        if (mostrarPedidosPorUsuario(pedidoRepo, idUsuario)) {
+                            System.out.println("........................");
+                        } else {
+                            System.out.println("No se encontraron pedidos para el usuario seleccionado.");
+                        }
+                    } else {
+                        System.out.println("No hay usuarios activos para seleccionar.");
+                    }
+
+                }
+                case 6-> { // pedidos por estado
                     System.out.println("Seleccione estado de pedido:");
                     System.out.println("1. PENDIENTE");
                     System.out.println("2. CONFIRMADO");
@@ -805,19 +857,12 @@ public class Main {
 
                     }
 
-                    var pedidos = pedidoRepo.buscarPorEstado(estadoBuscado);
-
-
-                }
-                case 4 -> { //mostrar pedidos
-                    if (mostrarPedidosActivos(pedidoRepo)) {
+                    if (mostrarPedidosPorEstado(pedidoRepo, estadoBuscado)) {
                         System.out.println("........................");
                     } else {
-                        System.out.println("No se encontraron pedidos activos.");
+                        System.out.println("No se encontraron pedidos en estado " + estadoBuscado + ".");
                     }
                 }
-                //             case 5 -> pedidosPorUsuario(usuarioRepo, pedidoRepo, sc);
-                //            case 6 -> pedidosPorEstado(pedidoRepo, sc);
                 case 0 -> System.out.println("Volviendo al menú principal...");
                 default -> System.out.println("Opción inválida.");
             }

@@ -4,6 +4,7 @@ import com.tp.jpa.model.entities.Categoria;
 import com.tp.jpa.model.entities.Pedido;
 import com.tp.jpa.model.entities.Producto;
 import com.tp.jpa.model.entities.Usuario;
+import com.tp.jpa.model.enums.Estado;
 import com.tp.jpa.repository.CategoriaRepository;
 import com.tp.jpa.repository.PedidoRepository;
 import com.tp.jpa.repository.ProductoRepository;
@@ -112,7 +113,41 @@ public class Reports {
         return true;
     }
 
+    public static boolean mostrarPedidosPorEstado(PedidoRepository pedidoRepo, Estado estadoBuscado) {
+        var pedidos = pedidoRepo.buscarPorEstado(estadoBuscado);
 
+        if (pedidos.isEmpty()) {
+            System.out.println("No hay pedidos con estado " + estadoBuscado + ".");
+            return false;
+        }
+
+        System.out.println("\n--- PEDIDOS EN ESTADO " + estadoBuscado + " ---");
+        for (Pedido p : pedidos) {
+            System.out.println("ID: " + p.getId() +
+                    " | Fecha: " + p.getFecha() +
+                    " | Usuario: " + p.getUsuario().getNombre() + " " + p.getUsuario().getApellido() +
+                    " | Total: $" + p.getTotal());
+        }
+        return true;
+    }
+
+    public static boolean mostrarPedidosPorUsuario(PedidoRepository pedidoRepo, Long idUsuario) {
+        var pedidos = pedidoRepo.buscarPorUsuario(idUsuario);
+
+        if (pedidos.isEmpty()) {
+            System.out.println("No hay pedidos para el usuario con ID " + idUsuario + ".");
+            return false;
+        }
+
+        System.out.println("\n--- PEDIDOS DEL USUARIO " + idUsuario + " ---");
+        for (Pedido p : pedidos) {
+            System.out.println("ID: " + p.getId() +
+                    " | Fecha: " + p.getFecha() +
+                    " | Estado: " + p.getEstado() +
+                    " | Total: $" + p.getTotal());
+        }
+        return true;
+    }
 
 
 }
