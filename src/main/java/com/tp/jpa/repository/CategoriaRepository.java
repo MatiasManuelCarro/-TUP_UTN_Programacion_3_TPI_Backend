@@ -1,6 +1,5 @@
 package com.tp.jpa.repository;
 
-import com.tp.jpa.model.entities.Base;
 import com.tp.jpa.model.entities.Categoria;
 
 

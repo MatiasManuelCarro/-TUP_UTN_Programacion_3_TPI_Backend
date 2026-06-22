@@ -1,11 +1,9 @@
 package com.tp.jpa.repository;
 
 import com.tp.jpa.model.entities.Producto;
-import com.tp.jpa.model.entities.Usuario;
-import jakarta.persistence.EntityManager;
 
 import java.util.List;
-import java.util.Optional;
+
 
 public class ProductoRepository extends BaseRepository<Producto> {
 
@@ -33,7 +31,7 @@ public class ProductoRepository extends BaseRepository<Producto> {
         }
     }
 
-
+    //Busqueeda JPQL
     public List<Producto> buscarPorNombre(String nombre) {
         var em = emf.createEntityManager();
         try {

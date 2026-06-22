@@ -50,7 +50,7 @@ public class Main {
             System.out.println("1. Gestión de Categorías");
             System.out.println("2. Gestión de Productos");
             System.out.println("3. Gestión de Usuarios");
-            System.out.println("4. Gestionar Pedidos");
+            System.out.println("4. Gestión de Pedidos");
             System.out.println("5. Reportes");
             System.out.println("0. Salir");
             System.out.println("..........................\n");
@@ -137,7 +137,6 @@ public class Main {
 
                     System.out.print("Elija una categoria ");
 
-                    //ingreso seguro de long
                     Long id = LongSeguro(sc, "Seleccione ID:");
 
 

@@ -17,7 +17,6 @@ public abstract class BaseRepository<T extends Base> {
         this.emf = JPAUtil.getEntityManagerFactory();
     }
 
-    // ===== 1. Guardar (T entity) =====
     public T guardar(T entity) {
         var em = emf.createEntityManager();
         var tx = em.getTransaction();
@@ -37,7 +36,6 @@ public abstract class BaseRepository<T extends Base> {
         }
     }
 
-    // ===== 2. buscarPorId(Long id) =====
     public Optional<T> buscarPorId(Long id) {
         var em = emf.createEntityManager();
 
@@ -50,7 +48,6 @@ public abstract class BaseRepository<T extends Base> {
         }
     }
 
-    // ===== 3. listarActivos  =====
     public List<T> listarActivos() {
         var em = emf.createEntityManager();
 
@@ -63,7 +60,6 @@ public abstract class BaseRepository<T extends Base> {
         }
     }
 
-    // ===== 3. listarInactivos =====
     public List<T> listarInactivos() {
         var em = emf.createEntityManager();
 
@@ -77,7 +73,6 @@ public abstract class BaseRepository<T extends Base> {
     }
 
 
-    // ===== 4. eliminarLogico =====
 
     public boolean eliminarLogico(Long id) {
         var em = emf.createEntityManager();
@@ -108,7 +103,6 @@ public abstract class BaseRepository<T extends Base> {
         }
     }
 
-    // Alta logixa
 
     public boolean AltaLogica(Long id) {
         var em = emf.createEntityManager();
