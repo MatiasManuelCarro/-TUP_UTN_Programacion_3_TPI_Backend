@@ -13,6 +13,7 @@ import com.tp.jpa.repository.PedidoRepository;
 import com.tp.jpa.repository.ProductoRepository;
 import com.tp.jpa.repository.UsuarioRepository;
 import com.tp.jpa.util.DataLoader;
+import com.tp.jpa.util.JPAUtil;
 import com.tp.jpa.util.Validator;
 
 import java.util.*;
@@ -77,6 +78,7 @@ public class Main {
         } while (opcion != 0);
 
         sc.close();
+        JPAUtil.close();
     }
 
 

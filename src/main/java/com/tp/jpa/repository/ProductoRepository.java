@@ -31,7 +31,7 @@ public class ProductoRepository extends BaseRepository<Producto> {
         }
     }
 
-    //Busqueeda JPQL
+    //Consulta JPQL que busca producto por nombre
     public List<Producto> buscarPorNombre(String nombre) {
         var em = emf.createEntityManager();
         try {
