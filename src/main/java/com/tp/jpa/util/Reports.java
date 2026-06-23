@@ -145,6 +145,7 @@ public class Reports {
             System.out.println("ID: " + p.getId() +
                     " | Fecha: " + p.getFecha() +
                     " | Estado: " + p.getEstado() +
+                    " | Forma de pago: " + p.getFormapago() +
                     " | Total: $" + p.getTotal());
         }
         return true;

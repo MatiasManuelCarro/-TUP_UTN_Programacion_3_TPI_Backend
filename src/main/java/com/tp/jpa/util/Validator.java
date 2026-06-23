@@ -120,21 +120,32 @@ public class Validator {
             return false;
         }
 
-        // Caso 1: ya existe activo
-        boolean existeActivo = usuarioRepo.listarActivos()
+        // buscar usuario activo por mail
+        Optional<Usuario> existente = usuarioRepo.buscarPorMail(mail);
+        if (existente.isPresent()) {
+            System.out.println("Ya existe un usuario activo con ese mail.");
+            return false;
+        }
+
+        // buscar usuario inactivo
+        Optional<Usuario> usuarioInactivo = usuarioRepo.listarInactivos()
+                .stream()
+                .filter(u -> u.getMail().equalsIgnoreCase(mail))
+                .findFirst();
+
+        //ya existe activo
+/*        boolean existeActivo = usuarioRepo.listarActivos()
                 .stream()
                 .anyMatch(u -> u.getMail().equalsIgnoreCase(mail));
 
         if (existeActivo) {
             System.out.println("Ya existe un usuario activo con ese mail.");
             return false;
-        }
+        }*/
 
-        // Caso 2: existe inactivo → ofrecer reactivación
-        Optional<Usuario> usuarioInactivo = usuarioRepo.listarInactivos()
-                .stream()
-                .filter(u -> u.getMail().equalsIgnoreCase(mail))
-                .findFirst();
+        // buscar usuario activo por mail
+
+        //existe inactivo → ofrecer reactivación
 
         if (usuarioInactivo.isPresent()) {
             System.out.println("Ya existe un usuario con ese mail, pero se encuentra inactivo." +
@@ -167,7 +178,7 @@ public class Validator {
 
     public static boolean validarFormatoMail(String mail) {
         if (mail == null || mail.isBlank()) return false;
-        String REGEX_EMAIL = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        String REGEX_EMAIL = "^.+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         return mail.matches(REGEX_EMAIL);
     }
 
