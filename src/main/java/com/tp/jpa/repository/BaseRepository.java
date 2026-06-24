@@ -63,6 +63,7 @@ public abstract class BaseRepository<T extends Base> {
     public List<T> listarInactivos() {
         var em = emf.createEntityManager();
 
+        //JPQL que devuelve inactivos (eliminado = true)
         try {
             String jpql = "SELECT e FROM " + entityClass.getSimpleName() + " e WHERE e.eliminado = true";
             return em.createQuery(jpql, entityClass).getResultList();

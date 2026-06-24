@@ -13,6 +13,7 @@ import com.tp.jpa.repository.PedidoRepository;
 import com.tp.jpa.repository.ProductoRepository;
 import com.tp.jpa.repository.UsuarioRepository;
 import com.tp.jpa.util.DataLoader;
+import com.tp.jpa.util.JPAUtil;
 import com.tp.jpa.util.Validator;
 
 import java.util.*;
@@ -67,7 +68,7 @@ public class Main {
 
                 case 4 -> menuPedidos(sc, pedidoRepo, usuarioRepo, productoRepo);
 
-                case 5 -> menuReportes(sc, productoRepo, categoriaRepo, usuarioRepo, pedidoRepo );
+                case 5 -> menuReportes(sc, productoRepo, categoriaRepo, usuarioRepo, pedidoRepo);
 
                 case 0 -> System.out.println("Saliendo del sistema...");
 
@@ -77,6 +78,7 @@ public class Main {
         } while (opcion != 0);
 
         sc.close();
+        JPAUtil.close();
     }
 
 
@@ -288,13 +290,34 @@ public class Main {
                         break;
                     }
 
+                    System.out.println("imagen (URL) Opcional");
+                    String imagen = sc.nextLine();
+                    if (imagen.isBlank()) {
+                        imagen = "";
+                    }
+
+                    System.out.print("¿Disponible? (S/N): ");
+                    String disponibleInput = sc.nextLine().trim().toUpperCase();
+
+                    boolean disponible;
+                    if (disponibleInput.equals("S")) {
+                        disponible = true;
+                    } else if (disponibleInput.equals("N")) {
+                        disponible = false;
+                    } else {
+                        System.out.println("Entrada inválida. Se asumirá NO disponible.");
+                        disponible = false;
+                    }
+
                     Producto nuevo = Producto.builder()
                             .nombre(nombre)
                             .descripcion(descripcion)
                             .precio(precio)
                             .stock(stock)
                             .disponible(true)
+                            .imagen(imagen)
                             .categoria(categoria)
+                            .disponible(disponible)
                             .build();
 
                     nuevo = productoRepo.guardar(nuevo);
@@ -367,19 +390,11 @@ public class Main {
                         prod.setNombre(nuevoNombre);
                     }
 
-
                     System.out.print("Nuevo precio (ENTER para mantener): ");
-                    String inputPrecio = sc.nextLine();
+                    String nuevoPrecio = sc.nextLine();
 
-                    if (!inputPrecio.isBlank()) {
-                        double precio;
-
-                        try {
-                            precio = Double.parseDouble(inputPrecio); //intenta parsearlo
-                        } catch (NumberFormatException e) {
-                            //si falla llama la funcion doubleseguro
-                            precio = DoubleSeguro(sc, "Ingrese el nuevo precio, recuerde utilizar solo numeros : ");
-                        }
+                    if (!nuevoPrecio.isBlank()) { //si presiona ENTER -> mantiene el valor
+                        double precio = DoubleSeguro(sc, "Ingrese el nuevo precio: ");
 
                         if (precio <= 0) {
                             System.out.println("El precio debe ser mayor a 0.");
@@ -389,22 +404,16 @@ public class Main {
                         prod.setPrecio(precio);
                     }
 
+
                     System.out.print("Nueva descripción (ENTER para mantener): ");
                     String nuevaDescripcion = sc.nextLine();
                     if (!nuevaDescripcion.isBlank()) prod.setDescripcion(nuevaDescripcion);
 
                     System.out.print("Nuevo stock (ENTER para mantener): ");
-                    String inputStock = sc.nextLine();
+                    String nuevoStock = sc.nextLine();
 
-                    if (!inputStock.isBlank()) {
-                        int stock;
-
-                        try {
-                            stock = Integer.parseInt(inputStock); //intenta parsearlo
-                        } catch (NumberFormatException e) {
-                            //si falla llama la funcion intseguro
-                            stock = intSeguro(sc, "Ingrese el nuevo stock, recuerde utilizar solo numeros : ");
-                        }
+                    if (!nuevoStock.isBlank()) { // si presiona ENTER -> mantiene el valor actual
+                        int stock = intSeguro(sc, "Ingrese el nuevo stock: ");
 
                         if (stock < 0) {
                             System.out.println("El stock no puede ser negativo.");
@@ -413,6 +422,7 @@ public class Main {
 
                         prod.setStock(stock);
                     }
+
 
                     productoRepo.guardar(prod);
 
@@ -423,7 +433,6 @@ public class Main {
                     System.out.println("\n--- LISTADO DE PRODUCTOS ACTIVOS ---");
 
                     mostrarProductosActivos(productoRepo);
-
 
                 }
 
@@ -528,57 +537,71 @@ public class Main {
                     }
                     Usuario user = optUser.get();
 
+                    // Variables temporales (input del usuario)
+                    String nuevoNombre = user.getNombre();
+                    String nuevoApellido = user.getApellido();
+                    String nuevoMail = user.getMail();
+                    String nuevoCelular = user.getCelular();
+                    String nuevaPass = user.getContrasenia();
+
                     System.out.println("Nombre actual: " + user.getNombre());
                     System.out.print("Nuevo nombre (ENTER para mantener): ");
-                    String nuevoNombre = sc.nextLine();
-                    if (!nuevoNombre.isBlank()) user.setNombre(nuevoNombre);
+                    String inputNombre = sc.nextLine();
+                    if (!inputNombre.isBlank()) nuevoNombre = inputNombre;
 
                     System.out.println("Apellido actual: " + user.getApellido());
                     System.out.print("Nuevo apellido (ENTER para mantener): ");
-                    String nuevoApellido = sc.nextLine();
-                    if (!nuevoApellido.isBlank()) user.setApellido(nuevoApellido);
+                    String inputApellido = sc.nextLine();
+                    if (!inputApellido.isBlank()) nuevoApellido = inputApellido;
 
                     System.out.println("Mail actual: " + user.getMail());
                     System.out.print("Nuevo mail (ENTER para mantener): ");
-                    String nuevoMail = sc.nextLine();
+                    String inputMail = sc.nextLine();
 
-                    if (!nuevoMail.isBlank()) {
+                    if (!inputMail.isBlank()) {
                         // Validar formato de mail
-                        if (!Validator.validarFormatoMail(nuevoMail)) {
+                        if (!Validator.validarFormatoMail(inputMail)) {
                             System.out.println("Formato de mail inválido.");
                             break;
                         }
 
                         // valida disponibilidad
-                        if (!Validator.validarMailDisponible(nuevoMail, usuarioRepo, sc)) {
+                        if (!Validator.validarMailDisponible(inputMail, usuarioRepo, sc)) {
                             break;
                         }
+                        nuevoMail = inputMail;
                     }
-
                     // Verifica que si el mail existe sea del mismo usuario
-                    var existente = usuarioRepo.buscarPorMail(nuevoMail);
+                    var existente = usuarioRepo.buscarPorMail(inputMail);
                     if (existente.isPresent() && !existente.get().getId().equals(user.getId())) {
                         System.out.println("Ya existe otro usuario con ese mail.");
                         break;
                     }
 
-                    user.setMail(nuevoMail);
-
                     System.out.println("Celular actual: " + user.getCelular());
                     System.out.print("Nuevo celular (ENTER para mantener): ");
-                    String nuevoCelular = sc.nextLine();
+                    String inputCelular = sc.nextLine();
 
-                    if (!nuevoCelular.isBlank()) {
-                        if (!Validator.validarCelular(nuevoCelular)) {
+                    if (!inputCelular.isBlank()) {
+                        if (!Validator.validarCelular(inputCelular)) {
                             System.out.println("El celular debe contener solo números.");
                             break;
                         }
-                        user.setCelular(nuevoCelular);
+                        nuevoCelular = inputCelular;
                     }
 
                     System.out.print("Nueva contraseña (ENTER para mantener): ");
-                    String nuevaPass = sc.nextLine();
-                    if (!nuevaPass.isBlank()) user.setContrasenia(nuevaPass);
+                    String inputPass = sc.nextLine();
+                    if (!inputPass.isBlank()) nuevaPass = inputPass;
+
+
+                    //Si se completa correctamente los datos se setean los cambios
+                    //si falla algo, no se realiza ningun cambio
+                    user.setNombre(nuevoNombre);
+                    user.setApellido(nuevoApellido);
+                    user.setMail(nuevoMail);
+                    user.setCelular(nuevoCelular);
+                    user.setContrasenia(nuevaPass);
 
                     usuarioRepo.guardar(user);
                     System.out.println("Usuario modificado correctamente.");
@@ -654,7 +677,7 @@ public class Main {
                     Optional<Usuario> usuarioOpt = usuarioRepo.buscarPorId(idUsuario);
                     if (usuarioOpt.isEmpty()) {
                         System.out.println("Usuario no encontrado.");
-                        return;
+                        continue;
                     }
 
                     // Forma de pago
@@ -667,10 +690,9 @@ public class Main {
                         case 3 -> formaPago = FormaPago.EFECTIVO;
                         default -> {
                             System.out.println("Opción inválida.");
-                            return;
+                            continue;
                         }
                     }
-                    ;
 
                     // Productos
                     List<DetalleTemporal> detallesTemp = new ArrayList<>();
@@ -682,11 +704,10 @@ public class Main {
 
                             if (prodOpt.isEmpty() || !prodOpt.get().isDisponible()) {
                                 System.out.println("Producto inválido o no disponible.");
-                                return;
+                                continue;
                             }
 
                             int cantidad = intSeguro(sc, "Cantidad: ");
-                            //  inválida (0 o negativa)
                             if (cantidad <= 0) {
                                 System.out.println("La cantidad debe ser mayor a 0.");
                                 continue;
@@ -720,7 +741,7 @@ public class Main {
 
                             if (detallesTemp.isEmpty()) {
                                 System.out.println("El pedido debe tener al menos un producto.");
-                                return;
+                                continue;
                             }
 
                             // Llamada al repositorio
@@ -732,7 +753,7 @@ public class Main {
                             }
                         } else {
                             System.out.println("No hay productos activos para seleccionar.");
-                            return;
+                            continue;
                         }
                     }
                 }
@@ -744,14 +765,14 @@ public class Main {
 
                     if (pedidoOpt.isEmpty() || pedidoOpt.get().isEliminado()) {
                         System.out.println("Pedido no encontrado o dado de baja.");
-                        return;
+                        continue;
                     }
 
                     Pedido pedido = pedidoOpt.get();
                     System.out.println("Estado actual: " + pedido.getEstado());
 
                     // Opciones de estado
-                    System.out.println("Nuevos estados disponibles:");
+                    System.out.println("Cambiar estado actual:");
                     System.out.println("1. PENDIENTE");
                     System.out.println("2. CONFIRMADO");
                     System.out.println("3. TERMINADO");
@@ -766,7 +787,7 @@ public class Main {
                         case 4 -> nuevoEstado = Estado.CANCELADO;
                         default -> {
                             System.out.println("Opción inválida.");
-                            return;
+                            continue;
                         }
                     }
 
@@ -783,7 +804,7 @@ public class Main {
                     // Mostrar pedidos activos
                     if (!mostrarPedidosActivos(pedidoRepo)) {
                         System.out.println("No hay pedidos activos para dar de baja.");
-                        return;
+                        continue;
                     }
 
                     Long idPedido = LongSeguro(sc, "Seleccione ID de pedido: ");
@@ -792,7 +813,7 @@ public class Main {
                     // Validar existencia y que no esté eliminado
                     if (pedidoOpt.isEmpty() || pedidoOpt.get().isEliminado()) {
                         System.out.println("Pedido no encontrado o ya estaba dado de baja.");
-                        return;
+                        continue;
                     }
 
                     Pedido pedido = pedidoOpt.get();
@@ -802,7 +823,7 @@ public class Main {
 
                     if (!eliminado) {
                         System.out.println("Error al dar de baja el pedido.");
-                        return;
+                        continue;
                     }
 
                     // Confirmar con datos guardados antes de la baja
@@ -811,27 +832,23 @@ public class Main {
 
                 }
                 case 4 -> { //mostrar pedidos
-                    if (mostrarPedidosActivos(pedidoRepo)) {
-                        System.out.println("........................");
-                    } else {
+                    if (!mostrarPedidosActivos(pedidoRepo)) {
                         System.out.println("No se encontraron pedidos activos.");
+                        continue;
                     }
                 }
                 case 5 -> {// pedidos por usuario
-                    if (mostrarUsuariosActivos(usuarioRepo)) {
-                        Long idUsuario = LongSeguro(sc, "Seleccione ID de usuario: ");
 
-                        if (mostrarPedidosPorUsuario(pedidoRepo, idUsuario)) {
-                            System.out.println("........................");
-                        } else {
-                            System.out.println("No se encontraron pedidos para el usuario seleccionado.");
-                        }
-                    } else {
-                        System.out.println("No hay usuarios activos para seleccionar.");
+                    if (!mostrarUsuariosActivos(usuarioRepo)) {
+                        continue;
                     }
+                    Long idUsuario = LongSeguro(sc, "Seleccione ID de usuario: ");
 
+                    if (!mostrarPedidosPorUsuario(pedidoRepo, idUsuario)) {
+                        continue;
+                    }
                 }
-                case 6-> { // pedidos por estado
+                case 6 -> { // pedidos por estado
                     System.out.println("Seleccione estado de pedido:");
                     System.out.println("1. PENDIENTE");
                     System.out.println("2. CONFIRMADO");
@@ -846,17 +863,16 @@ public class Main {
                         case 2 -> estadoBuscado = Estado.CONFIRMADO;
                         case 3 -> estadoBuscado = Estado.TERMINADO;
                         case 4 -> estadoBuscado = Estado.CANCELADO;
-                        default ->{
+                        default -> {
                             System.out.println("Opción inválida.");
-                            return;
+                            continue;
                         }
 
                     }
 
-                    if (mostrarPedidosPorEstado(pedidoRepo, estadoBuscado)) {
-                        System.out.println("........................");
-                    } else {
-                        System.out.println("No se encontraron pedidos en estado " + estadoBuscado + ".");
+                    if (!mostrarPedidosPorEstado(pedidoRepo, estadoBuscado)) {
+
+                        continue;
                     }
                 }
                 case 0 -> System.out.println("Volviendo al menú principal...");
@@ -870,7 +886,7 @@ public class Main {
                                      PedidoRepository pedidoRepo) {
         int opcionReporte;
         do {
-            System.out.println("\n--- REPORTES ---");
+            System.out.println("\n\n===== REPORTES =====");
             System.out.println("1. Listar Productos por categoría");
             System.out.println("2. Pedidos por usuario");
             System.out.println("3. Pedidos por estado");
@@ -889,20 +905,18 @@ public class Main {
                     listarProductoPorCategoriaHelper(productoRepo, idCategoria);
                 }
 
-                case 2 -> {
+                case 2 -> { //pedidos por usuario
                     if (mostrarUsuariosActivos(usuarioRepo)) {
                         Long idUsuario = LongSeguro(sc, "Seleccione ID de usuario: ");
                         if (mostrarPedidosPorUsuario(pedidoRepo, idUsuario)) {
                             System.out.println("Fin del listado.");
-                        } else {
-                            System.out.println("No se encontraron pedidos para el usuario seleccionado.");
                         }
                     } else {
                         System.out.println("No hay usuarios activos para seleccionar.");
                     }
                 }
 
-                case 3 -> {
+                case 3 -> { //pedidos por estado
                     System.out.println("Seleccione estado de pedido:");
                     System.out.println("1. PENDIENTE");
                     System.out.println("2. CONFIRMADO");
@@ -925,8 +939,6 @@ public class Main {
 
                     if (mostrarPedidosPorEstado(pedidoRepo, estadoBuscado)) {
                         System.out.println("Fin del listado.");
-                    } else {
-                        System.out.println("No se encontraron pedidos en estado " + estadoBuscado + ".");
                     }
                 }
 

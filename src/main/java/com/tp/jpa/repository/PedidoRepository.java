@@ -21,6 +21,7 @@ public class PedidoRepository extends BaseRepository<Pedido>{
     }
 
     // Pedidos activos de un usuario
+    // Consulta JPQL donde busca los pedidos por la id de un usuario. el usuario no tiene que estar eliminado
     public List<Pedido> buscarPorUsuario(Long idUsuario) {
         var em = emf.createEntityManager();
         try {
@@ -34,7 +35,7 @@ public class PedidoRepository extends BaseRepository<Pedido>{
     }
 
     // Pedidos activos por estado
-    //Consulta JPQL pedido donde el estado sea eliminado = false
+    //Consulta JPQL de pedido donde el estado sea el ingresado y eliminado = false
     public List<Pedido> buscarPorEstado(Estado estado) {
         var em = emf.createEntityManager();
         try {
