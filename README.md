@@ -1,106 +1,197 @@
-# JPA – ABM de Categorías y Productos
-
-## Java Persistence API (JPA) - Programación 3 - Segundo Parcial Parcial 
+# Trabajo Practico Integrador - Food Store – Backend JPA (Consola)
 
 ## Alumno: Matias Manuel Carro
 
 ## 🎥 Video de presentación
 
-Link al video:  https://www.youtube.com/watch?v=7qWdzV3JqFE
-
 #### Aplicación de consola desarrollada para la materia **Programación III** de la **Tecnicatura Universitaria en Programación – UTN**.
 
-El objetivo del proyecto es implementar un sistema de gestión de **Categorías** y **Productos** utilizando **Java Persistence API (JPA)**, aplicando repositorios genéricos, operaciones CRUD, validaciones y una consulta JPQL 
+# 📌 Introducción
 
+Food Store es una aplicación de consola desarrollada para la materia **Programación III**, cuyo objetivo es implementar un sistema completo de gestión utilizando **Java Persistence API (JPA)**, repositorios genéricos, consultas JPQL, validaciones y operaciones CRUD con baja lógica.
 
-Aplicación de consola desarrollada para la materia **Programación III** de la **Tecnicatura Universitaria en Programación – UTN**.
+El sistema permite administrar:
 
-El objetivo del proyecto es implementar un sistema de gestión de **Categorías** y **Productos** utilizando **Java Persistence API (JPA)**, aplicando repositorios genéricos, operaciones CRUD, validaciones y una consulta JPQL personalizada.
+- Categorías  
+- Productos  
+- Usuarios  
+- Pedidos  
+- Reportes  
+
+Todo persistido mediante **Hibernate + JPA**, con una arquitectura modular, escalable y orientada a buenas prácticas.
 
 ---
 
-## ⚙️ Funcionalidades Principales
+---
 
-### 📦 1. Repositorio Genérico (BaseRepository)
+# 🎯 Objetivos del proyecto
 
-Implementa las operaciones CRUD comunes para todas las entidades:
+- Implementar entidades JPA con relaciones correctas.  
+- Aplicar repositorios genéricos con CRUD completo.  
+- Utilizar JPQL para consultas personalizadas.  
+- Implementar baja lógica y reactivación de registros.  
+- Desarrollar un menú de consola funcional y validado.  
+- Gestionar pedidos con stock, totales y estados.  
+- Aplicar buenas prácticas de arquitectura y modularidad.
 
-- Guardar / actualizar (`merge`)
-- Buscar por ID (`Optional<T>`)
-- Listar activos (JPQL con `eliminado = false`)
-- Listar inactivos
-- Baja lógica (`eliminado = true`)
-- Alta lógica (reactivar registros)
+---
+
+# 🗄️ Modelo de Datos
+
+El sistema implementa las siguientes entidades:
+
+- **Categoria**
+- **Producto**
+- **Usuario**
+- **Pedido**
+- **DetallePedido**
+
+### Relaciones principales:
+
+- Producto → Categoría (**ManyToOne**)  
+- Usuario → Pedido (**OneToMany**)  
+- Pedido → DetallePedido (**OneToMany**)  
+- DetallePedido → Producto (**ManyToOne**)  
+
+Todas las entidades incluyen:
+
+- ID autogenerado  
+- Campo `eliminado` para baja lógica  
+- Builder pattern (Lombok)  
+- Validaciones en el menú  
+
+---
+
+# ⚙️ Funcionalidades Principales
+
+## 📦 Repositorio Genérico (BaseRepository)
+
+El repositorio base implementa las operaciones CRUD comunes para todas las entidades:
+
+- Guardar / actualizar (`guardar()`)
+- Buscar por ID (`buscarPorId()`)
+- Listar activos (`listarActivos()` JPQL con `eliminado = false`)
+- Listar inactivos (`listarInactivos()` JPQL con `eliminado = true`)
+- Baja lógica (`eliminarLogico()` Donde se declara `eliminado = true`) 
+- Alta lógica (reactivar registros `eliminado = false`)
 - Manejo de transacciones y cierre de `EntityManager`
+- Uso de `Optional<T>`
 
-Este repositorio es la base para `CategoriaRepository` y `ProductoRepository`.
+- `guardar()`  
+- `buscarPorId()`  
+- `listarActivos()`  
+- `listarInactivos()`  
+- `eliminarLogico()`  
+- `AltaLogica()`  
+- Manejo de transacciones  
 
----
-
-### 🗂️ 2. Gestión de Categorías
-
-Incluye un menú completo con:
-
-#### ✔️ Alta
-- Solicita nombre y descripción  
-- Valida duplicados  
-- Permite reactivar categorías inactivas  
-- Muestra ID generado  
-
-#### ✔️ Baja lógica
-- Marca la categoría como eliminada  
-- No se borra físicamente  
-
-#### ✔️ Modificación
-- Muestra valores actuales  
-- Permite mantener campos con ENTER  
-- Valida nombre duplicado  
-
-#### ✔️ Listado
-- Muestra todas las categorías activas  
+Los repositorios específicos extienden esta clase y agregan consultas JPQL personalizadas.
 
 ---
 
-### 🛒 3. Gestión de Productos
+## 🛒 Gestión de Productos
 
-Incluye:
-
-#### ✔️ Alta
+### ✔ Alta
 - Lista categorías activas  
 - Solicita nombre, descripción, precio y stock  
 - Valida precio > 0 y stock ≥ 0  
 - Valida duplicados y permite reactivar productos inactivos  
 
-#### ✔️ Baja lógica
+### ✔ Baja lógica
 - Marca el producto como eliminado  
 
-#### ✔️ Modificación
+### ✔ Modificación
 - Muestra valores actuales  
 - Permite mantener campos con ENTER  
 - Valida precio y stock  
 
-#### ✔️ Listado
+### ✔ Listado
 - Muestra todos los productos activos  
 - Incluye categoría asociada  
 
 ---
 
-### 🔎 4. Reporte JPQL – Productos por Categoría
+# 👤 Gestión de Usuarios
 
-El menú de reportes permite:
+### ✔ Alta
+- Validación de mail (formato + duplicados)  
+- Reactivación de usuarios inactivos  
+- Rol configurable (ADMIN / USUARIO)  
 
-- Listar categorías activas  
-- Seleccionar una categoría por ID  
-- Mostrar productos activos de esa categoría  
-- Informar explícitamente si no existen productos asociados  
+### ✔ Modificación
+- Validación de mail  
+- Validación de celular  
 
-Consulta implementada en `ProductoRepository`:
+### ✔ Baja lógica
+- `eliminado = true`  
+
+### ✔ Búsqueda por mail
+- Implementada con JPQL  
+
+---
+
+# 📦 Gestión de Pedidos
+
+### ✔ Alta de pedido
+- Selección de usuario  
+- Selección de forma de pago  
+- Agregado de productos con validación de stock  
+- Cálculo automático del total  
+
+### ✔ Cambio de estado
+Estados disponibles:
+- PENDIENTE  
+- PREPARACION  
+- ENVIADO  
+- TERMINADO  
+
+### ✔ Baja lógica
+- `eliminado = true`  
+
+### ✔ Listados
+- Pedidos activos  
+- Pedidos por usuario  
+- Pedidos por estado  
+
+---
+
+# 🔎 Reportes (JPQL)
+
+Incluye:
+
+- Productos por categoría  
+- Pedidos por estado  
+- Pedidos por usuario  
+- Total facturado  
+
+Ejemplo de consultas JPQL utilizadas:
+
+- `buscarPorUsuario()` 
+```java
+String jpql = "SELECT p FROM Pedido p WHERE p.usuario.id = :uid AND p.eliminado = false";
+```
+
+- `buscarPorEstado()`
 
 ```java
-String jpql = "SELECT p FROM Producto p " +
-        "WHERE p.categoria.id = :categoriaId " +
-        "AND p.eliminado = false";
+ String jpql = "SELECT p FROM Pedido p WHERE p.estado = :estado AND p.eliminado = false";
 ```
+
+- `buscarPorCategoria()`
+```java
+String jpql = "SELECT p FROM Producto p " +
+                    "WHERE p.categoria.id = :categoriaId " +
+                    "AND p.eliminado = false";
+```
+
+- `buscarPorNombre()`
+```java
+String jpql = "SELECT p FROM Producto p " +
+                    "WHERE LOWER(p.nombre) = LOWER(:nombre) " +
+                    "AND p.eliminado = false";
+```
+
+ 
 
 ## 🛠️ Tecnologías utilizadas
 
@@ -125,7 +216,9 @@ src/main/java/com/tp/jpa/
 ├── repository/
 │   ├── BaseRepository.java
 │   ├── CategoriaRepository.java
-│   └── ProductoRepository.java
+│   ├── ProductoRepository.java
+│   ├── UsuarioRepository.java
+│   └── PedidoRepository.java
 │
 ├── util/
 │   ├── JPAUtil.java
@@ -190,10 +283,12 @@ El sistema abrirá el menú principal en consola.
 
 El menú principal permite acceder a:
 
-- Gestión de categorías  
-- Gestión de productos  
-- Reportes  
-- Salir  
+1. Gestión de categorías  
+2. Gestión de productos  
+3. Gestion de Usuarios
+4. Gestion de Pedidos
+5. Reportes  
+0. Salir  
 
 Cada submenú guía al usuario paso a paso con validaciones y mensajes claros, mostrando siempre mensajes de error cuando el ID no existe o el registro está dado de baja, y confirmaciones cuando las operaciones se realizan correctamente.
 
@@ -201,6 +296,8 @@ Cada submenú guía al usuario paso a paso con validaciones y mensajes claros, m
 
 ## 🎥 Video de presentación
 
-Link al video:  https://www.youtube.com/watch?v=7qWdzV3JqFE
 
-### Proyecto realizado por Matias Carro
+
+### Proyecto realizado por:
+**Matías Manuel Carro**  
+Tecnicatura Universitaria en Programación – UTN
