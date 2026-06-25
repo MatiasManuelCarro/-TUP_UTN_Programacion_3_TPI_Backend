@@ -9,7 +9,7 @@ import com.tp.jpa.repository.UsuarioRepository;
 
 import java.util.Optional;
 import java.util.Scanner;
-import java.util.regex.Pattern;
+
 
 import static com.tp.jpa.util.Input.intSeguro;
 
@@ -100,17 +100,6 @@ public class Validator {
         return false; //si pasa las evaluaciones continua con el alta
     }
 
-    //Validar ingreso de mail
-    private static final String REGEX_EMAIL = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-
-  /*  public static boolean validarMail(String mail) {
-        // Si es null o está en blanco es inválido
-        if (mail == null || mail.isBlank()) {
-            return false;
-        }
-        // Si no cumple el regex es inválido
-        return Pattern.matches(REGEX_EMAIL, mail);
-    }*/
 
     //devuelve true si esta disponible | false si no esta disponible el mail (ya en uso)
     public static boolean validarMailDisponible(String mail, UsuarioRepository usuarioRepo, Scanner sc) {
@@ -133,18 +122,8 @@ public class Validator {
                 .filter(u -> u.getMail().equalsIgnoreCase(mail))
                 .findFirst();
 
-        //ya existe activo
-/*        boolean existeActivo = usuarioRepo.listarActivos()
-                .stream()
-                .anyMatch(u -> u.getMail().equalsIgnoreCase(mail));
-
-        if (existeActivo) {
-            System.out.println("Ya existe un usuario activo con ese mail.");
-            return false;
-        }*/
 
         // buscar usuario activo por mail
-
         //existe inactivo → ofrecer reactivación
 
         if (usuarioInactivo.isPresent()) {

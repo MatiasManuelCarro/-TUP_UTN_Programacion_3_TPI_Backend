@@ -23,7 +23,6 @@ public class JPAUtil {
         return emf.createEntityManager();
     }
 
-    //como usarlo -> EntityManager em = JPAUtil.getEntityManager();
 
     public static EntityManagerFactory getEntityManagerFactory() {
         return emf;
