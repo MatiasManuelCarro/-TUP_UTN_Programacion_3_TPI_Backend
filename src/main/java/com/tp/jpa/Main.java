@@ -41,7 +41,7 @@ public class Main {
 
 
         //Clase solo para pruebas - carga categorias y productos si la base se encuentra vacia.
-        DataLoader.load(categoriaRepo, productoRepo);
+        DataLoader.load(categoriaRepo, productoRepo, usuarioRepo, pedidoRepo);
 
         int opcion;
 
