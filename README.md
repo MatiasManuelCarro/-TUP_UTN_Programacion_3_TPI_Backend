@@ -4,6 +4,8 @@
 
 ## 🎥 Video de presentación
 
+https://youtu.be/0o0vLaEKT-o
+
 #### Aplicación de consola desarrollada para la materia **Programación III** de la **Tecnicatura Universitaria en Programación – UTN**.
 
 # 📌 Introducción
